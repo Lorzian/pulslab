@@ -38,13 +38,13 @@ Funcționalitățile USB și fluiditatea graficului trebuie verificate pe calcul
 
 ## Conectare hardware
 
-| MAX30100 | Arduino Uno |
-| --- | --- |
-| VIN | 5 V, conform modulului utilizat |
-| GND | GND |
-| SCL | A5 |
-| SDA | A4 |
-| INT | D2, opțional |
+| MAX30100 | Arduino Uno                     |
+| -------- | ------------------------------- |
+| VIN      | 5 V, conform modulului utilizat |
+| GND      | GND                             |
+| SCL      | A5                              |
+| SDA      | A4                              |
+| INT      | D2, opțional                    |
 
 Firmware-ul nu este inclus în această etapă. Trebuie să producă date brute la 100 Hz și să implementeze protocolul de mai jos.
 
@@ -52,13 +52,13 @@ Firmware-ul nu este inclus în această etapă. Trebuie să producă date brute 
 
 Fiecare linie se termină cu `\n` (se acceptă și CRLF).
 
-| Direcție | Mesaj | Semnificație |
-| --- | --- | --- |
-| Placă → web | `D,<nr>,<ir>,<red>` | Secvență crescătoare și valori ADC întregi 0–65535 |
-| Placă → web | `#text`, `#ERR text` | Mesaj informativ sau eroare |
-| Web → placă | `L7,7` | Indecși LED IR și RED 0–15 |
-| Web → placă | `P` / `S` | Pauză / pornire |
-| Web → placă | `?` | Interogare configurație |
+| Direcție    | Mesaj                | Semnificație                                       |
+| ----------- | -------------------- | -------------------------------------------------- |
+| Placă → web | `D,<nr>,<ir>,<red>`  | Secvență crescătoare și valori ADC întregi 0–65535 |
+| Placă → web | `#text`, `#ERR text` | Mesaj informativ sau eroare                        |
+| Web → placă | `L7,7`               | Indecși LED IR și RED 0–15                         |
+| Web → placă | `P` / `S`            | Pauză / pornire                                    |
+| Web → placă | `?`                  | Interogare configurație                            |
 
 Timpul semnalului este calculat ca `nr × 10 ms`, presupunând firmware la 100 Hz. Rata afișată este rata efectivă de recepție în browser; transportul USB poate livra date în loturi. Secvențele care scad sunt tratate ca restart al achiziției. Pierderile se numără cumulativ în sesiune. Numărătoarea bătăilor și timestampurile nu sunt o măsurare de timp validată pe hardware.
 
