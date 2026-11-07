@@ -1,71 +1,76 @@
 import React, { useEffect, useRef } from 'react';
 export function PpgPlot({ processorRef, historySeconds, running }) {
-  const canvas = useRef(null);
+  const canvasRef = useRef(null);
+  // Canvas citește punctele din referință; animația nu impune rerandări React.
   useEffect(() => {
-    let frame;
+    let animationFrameId;
     const draw = () => {
-      const el = canvas.current,
-        rect = el.getBoundingClientRect(),
-        dpr = devicePixelRatio || 1;
+      const canvasElement = canvasRef.current,
+        bounds = canvasElement.getBoundingClientRect(),
+        pixelRatio = devicePixelRatio || 1;
       if (
-        el.width !== Math.round(rect.width * dpr) ||
-        el.height !== Math.round(rect.height * dpr)
+        canvasElement.width !== Math.round(bounds.width * pixelRatio) ||
+        canvasElement.height !== Math.round(bounds.height * pixelRatio)
       ) {
-        el.width = rect.width * dpr;
-        el.height = rect.height * dpr;
+        canvasElement.width = bounds.width * pixelRatio;
+        canvasElement.height = bounds.height * pixelRatio;
       }
-      const ctx = el.getContext('2d');
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      const w = rect.width,
-        h = rect.height,
-        pad = 24;
-      ctx.clearRect(0, 0, w, h);
-      ctx.lineWidth = 1;
-      ctx.strokeStyle = '#708d891f';
-      for (let i = 0; i <= 10; i++) {
-        ctx.beginPath();
-        ctx.moveTo(pad + (i * (w - 2 * pad)) / 10, pad);
-        ctx.lineTo(pad + (i * (w - 2 * pad)) / 10, h - pad);
-        ctx.stroke();
+      const context = canvasElement.getContext('2d');
+      context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+      const width = bounds.width,
+        height = bounds.height,
+        padding = 24;
+      context.clearRect(0, 0, width, height);
+      context.lineWidth = 1;
+      context.strokeStyle = '#708d891f';
+      for (let index = 0; index <= 10; index++) {
+        context.beginPath();
+        context.moveTo(padding + (index * (width - 2 * padding)) / 10, padding);
+        context.lineTo(padding + (index * (width - 2 * padding)) / 10, height - padding);
+        context.stroke();
       }
-      for (let i = 0; i <= 4; i++) {
-        ctx.beginPath();
-        ctx.moveTo(pad, pad + (i * (h - 2 * pad)) / 4);
-        ctx.lineTo(w - pad, pad + (i * (h - 2 * pad)) / 4);
-        ctx.stroke();
+      for (let index = 0; index <= 4; index++) {
+        context.beginPath();
+        context.moveTo(padding, padding + (index * (height - 2 * padding)) / 4);
+        context.lineTo(width - padding, padding + (index * (height - 2 * padding)) / 4);
+        context.stroke();
       }
-      const all = processorRef.current.points,
-        end = all.at(-1)?.t || historySeconds * 1000;
-      const points = all.filter((p) => p.t >= end - historySeconds * 1000);
-      const scale = Math.max(100, ...points.map((p) => Math.abs(p.value))) * 1.25;
-      const x = (p) =>
-          pad + ((p.t - end + historySeconds * 1000) / (historySeconds * 1000)) * (w - 2 * pad),
-        y = (p) => h / 2 - (p.value / scale) * (h / 2 - pad);
-      ctx.strokeStyle = '#2bbca4';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      points.forEach((p, i) => (i ? ctx.lineTo(x(p), y(p)) : ctx.moveTo(x(p), y(p))));
-      ctx.stroke();
+      const allPoints = processorRef.current.points,
+        latestTimeMs = allPoints.at(-1)?.t || historySeconds * 1000;
+      const points = allPoints.filter((point) => point.t >= latestTimeMs - historySeconds * 1000);
+      const amplitudeScale = Math.max(100, ...points.map((point) => Math.abs(point.value))) * 1.25;
+      const getX = (point) =>
+          padding +
+          ((point.t - latestTimeMs + historySeconds * 1000) / (historySeconds * 1000)) *
+            (width - 2 * padding),
+        getY = (point) => height / 2 - (point.value / amplitudeScale) * (height / 2 - padding);
+      context.strokeStyle = '#2bbca4';
+      context.lineWidth = 2;
+      context.beginPath();
+      points.forEach((point, index) =>
+        index ? context.lineTo(getX(point), getY(point)) : context.moveTo(getX(point), getY(point)),
+      );
+      context.stroke();
       points
-        .filter((p) => p.beat)
-        .forEach((p) => {
-          ctx.fillStyle = '#e5aa67';
-          ctx.beginPath();
-          ctx.arc(x(p), y(p), 4, 0, 2 * Math.PI);
-          ctx.fill();
+        .filter((point) => point.beat)
+        .forEach((point) => {
+          context.fillStyle = '#e5aa67';
+          context.beginPath();
+          context.arc(getX(point), getY(point), 4, 0, 2 * Math.PI);
+          context.fill();
         });
-      ctx.fillStyle = '#839994';
-      ctx.font = '11px monospace';
-      ctx.fillText(`−${historySeconds} s`, pad, h - 5);
-      ctx.fillText('acum', w - pad - 28, h - 5);
-      frame = requestAnimationFrame(draw);
+      context.fillStyle = '#839994';
+      context.font = '11px monospace';
+      context.fillText(`−${historySeconds} s`, padding, height - 5);
+      context.fillText('acum', width - padding - 28, height - 5);
+      animationFrameId = requestAnimationFrame(draw);
     };
     draw();
-    return () => cancelAnimationFrame(frame);
+    return () => cancelAnimationFrame(animationFrameId);
   }, [processorRef, historySeconds, running]);
   return (
     <canvas
-      ref={canvas}
+      ref={canvasRef}
       aria-label="Grafic în timp real al semnalului PPG filtrat și bătăilor detectate"
       role="img"
     />

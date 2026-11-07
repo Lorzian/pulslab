@@ -14,6 +14,7 @@ export class LineBuffer {
     this.onLine = onLine;
   }
   push(chunk) {
+    // Numai liniile complete sunt trimise parserului; restul așteaptă următorul fragment.
     this.pending += chunk;
     let index;
     while ((index = this.pending.indexOf('\n')) !== -1) {

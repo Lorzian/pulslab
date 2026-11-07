@@ -10,6 +10,8 @@ export class SerialConnection {
     this.task = this.read();
   }
   async read() {
+    // Un fragment USB poate conține o parte de linie sau mai multe linii.
+    // Decoderul păstrează caracterele UTF-8 împărțite între fragmente.
     const decoder = new TextDecoder();
     const lines = new LineBuffer(this.onLine);
     try {
@@ -26,7 +28,9 @@ export class SerialConnection {
       this.reader = null;
       try {
         await this.port.close();
-      } catch {}
+      } catch {
+        // Cablul poate fi deja scos; raportarea închiderii trebuie să continue.
+      }
       this.onClose();
     }
   }
@@ -40,6 +44,7 @@ export class SerialConnection {
     }
   }
   async close() {
+    // Anularea eliberează citirea blocată; read() eliberează lock-ul și închide portul.
     if (this.reader) await this.reader.cancel();
     await this.task;
   }

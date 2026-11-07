@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { Processor } from '../processor.js';
-import { parseLine } from '../protocol.js';
-import { demoLine } from '../simulator.js';
-import { SerialConnection } from '../serial.js';
+import { Processor } from '../processing/Processor.js';
+import { parseLine } from '../communication/protocol.js';
+import { demoLine } from '../simulation/simulator.js';
+import { SerialConnection } from '../communication/serial.js';
 import { downloadSessionCsv } from '../utils/csv.js';
 
 // Coordonează sursa și sesiunea. Algoritmul de semnal rămâne în Processor.
@@ -12,8 +12,8 @@ export function useAcquisition() {
     sessionPointsRef = useRef([]),
     serialConnectionRef = useRef(null),
     demoTimerRef = useRef(null);
-  const [measurements, setStats] = useState(processorRef.current.snapshot()),
-    [sourceMode, setMode] = useState('idle'),
+  const [measurements, setMeasurements] = useState(processorRef.current.snapshot()),
+    [sourceMode, setSourceMode] = useState('idle'),
     [isPaused, setIsPaused] = useState(false);
   const [settings, setSettings] = useState({ ...processorRef.current.settings });
   const [logs, setLogs] = useState([
@@ -56,7 +56,7 @@ export function useAcquisition() {
         snapshot.rate = 0;
         snapshot.status = 'Flux de date oprit';
       }
-      setStats(snapshot);
+      setMeasurements(snapshot);
     }, 200);
     return () => clearInterval(timer);
   }, []);
@@ -72,7 +72,7 @@ export function useAcquisition() {
     processorRef.current.settings = { ...settings };
     sessionPointsRef.current = [];
     lastSampleArrivalRef.current = 0;
-    setStats(processorRef.current.snapshot());
+    setMeasurements(processorRef.current.snapshot());
     setIsPaused(false);
   }
   async function disconnectSource() {
@@ -83,14 +83,14 @@ export function useAcquisition() {
       serialConnectionRef.current = null;
       await connection.close();
     }
-    setMode('idle');
+    setSourceMode('idle');
     setIsPaused(false);
     processorRef.current.clearVitals();
     appendLog('Sursă deconectată.');
   }
   function startDemo() {
     resetSession();
-    setMode('demo');
+    setSourceMode('demo');
     setError('');
     appendLog('#DEMO Simulator 100 Hz pornit.');
     let sequence = 0,
@@ -118,16 +118,16 @@ export function useAcquisition() {
       resetSession();
       const connection = new SerialConnection(receiveLine, () => {
         serialConnectionRef.current = null;
-        setMode('idle');
+        setSourceMode('idle');
         processorRef.current.clearVitals();
         appendLog('Conexiunea USB s-a închis.');
       });
       await connection.connect();
       serialConnectionRef.current = connection;
-      setMode('usb');
+      setSourceMode('usb');
       appendLog('USB conectat · 115200 baud.');
-    } catch (e) {
-      if (e.name !== 'NotFoundError') setError(e.message);
+    } catch (error) {
+      if (error.name !== 'NotFoundError') setError(error.message);
     } finally {
       setIsConnecting(false);
     }
@@ -136,8 +136,8 @@ export function useAcquisition() {
     try {
       if (sourceMode === 'usb') await serialConnectionRef.current.send(text);
       appendLog(`→ ${text}${sourceMode === 'demo' ? ' (demo)' : ''}`);
-    } catch (e) {
-      setError(e.message);
+    } catch (error) {
+      setError(error.message);
     }
   }
   async function togglePause() {

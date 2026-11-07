@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parseLine, LineBuffer } from '../src/protocol.js';
-import { Processor } from '../src/processor.js';
-import { demoLine } from '../src/simulator.js';
+import { parseLine, LineBuffer } from '../src/communication/protocol.js';
+import { Processor } from '../src/processing/Processor.js';
+import { demoLine } from '../src/simulation/simulator.js';
 test('protocol: validare strictă și linii fragmentate', () => {
   assert.equal(parseLine('D,2,32000,28000\r').type, 'sample');
   for (const line of ['D,2,1x,3', 'D,-1,2,3', 'D,1,65536,1', '', 'D,1,2,3,4'])

@@ -1,4 +1,5 @@
 export function demoLine(sequence, bpm = 72, scenario = 'normal') {
+  // Rata nominală este 100 Hz. Armonica a doua modelează forma nesinusoidală a PPG.
   const t = sequence / 100;
   const pulse =
     Math.sin(((2 * Math.PI * bpm) / 60) * t) +
