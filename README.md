@@ -34,7 +34,59 @@ Funcționalitățile USB și fluiditatea graficului trebuie verificate pe calcul
 
 ## Structură
 
-`src/protocol.js`: parser și buffer de linii; `serial.js`: Web Serial; `processor.js`: procesare independentă de React; `simulator.js`: date sintetice; `main.jsx`: interfață și grafic; `styles.css`: temă și layout; `tests/core.test.js`: teste automate de protocol și procesare.
+```text
+src/
+  main.jsx                   punctul de pornire React
+  App.jsx                    compunerea paginii și starea istoricului graficului
+  communication/
+    protocol.js              parser strict și buffer de linii fragmentate
+    serial.js                conectare, citire, scriere și închidere Web Serial
+  processing/
+    Processor.js             procesare PPG, bătăi, BPM, SpO₂ și verificări
+    statistics.js            medie și deviație standard
+  simulation/
+    simulator.js             date sintetice în protocolul plăcii
+  hooks/
+    useAcquisition.js        ciclul sesiunii USB/demo, mesaje și comenzi
+    useTheme.js              temă și memorare în browser
+  components/                afișare și interacțiuni, separate pe panouri
+    PpgPlot.jsx              desenarea graficului prin requestAnimationFrame
+  utils/
+    csv.js                   serializare CSV și descărcare în browser
+    format.js                formatarea valorilor pentru afișare
+  styles.css                 teme și layout responsive
+tests/
+  core.test.js               protocol, BPM, pierderi și situații limită
+  csv.test.js                integritatea coloanelor și valorilor exportate
+```
+
+Fluxul datelor: **Web Serial sau simulator → parser → Processor → sesiune → componente**.
+`Processor` primește obiecte cu `sequence`, `ir`, `red`, fără să cunoască React sau DOM.
+Graficul citește punctele dintr-o referință, iar valorile interfeței se actualizează la 5 Hz;
+procesarea continuă să se execute pentru fiecare eșantion primit.
+
+## Calitatea codului și contribuțiile echipei
+
+Codul folosește JavaScript, comentarii în română și nume de identificatori în engleză.
+Comentariile explică ipotezele, unitățile și gestionarea resurselor, fără să repete fiecare instrucțiune.
+Pentru formatare consecventă:
+
+```sh
+npm run format
+npm run format:check
+npm test
+npm run build
+```
+
+Fiecare membru lucrează într-o ramură pentru o schimbare concretă și face commit-uri când încheie
+o etapă reală. Commit-urile trebuie să păstreze autorul care a realizat contribuția. Schimbările
+asistate de Codex sunt marcate ca atare și nu se prezintă drept contribuțiile altor membri.
+Cerința de minimum 15 commit-uri și participarea tuturor membrilor rămân de îndeplinit pe parcursul
+proiectului; separarea artificială a aceleiași modificări nu înlocuiește contribuțiile reale.
+
+Punctul inițial de restaurare este ramura GitHub `backup/versiune-initiala-2026-11-07`, la commit-ul
+`885a5a20b3c487f60623d9f41ca333a4db387fac`. Refactorizarea se verifică într-o ramură separată
+înainte de integrarea în `main` și de publicare.
 
 ## Conectare hardware
 
